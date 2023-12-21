@@ -1,0 +1,25 @@
+# Use the official Node.js 14-alpine image as the base image
+FROM node:20-alpine as build
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy package.json and yarn.lock files to the working directory
+COPY package.json yarn.lock ./
+
+# Install project dependencies
+RUN yarn install --production
+
+# Copy the project source code to the working directory
+COPY . .
+
+# Expose port 3000 of the container
+RUN yarn run build
+
+FROM nginx:stable-alpine as prod
+
+COPY --from=build /app/build /usr/share/nginx/html
+
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+CMD ["nginx", "-g", "daemon off;"]
